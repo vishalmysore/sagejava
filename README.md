@@ -529,50 +529,29 @@ The paper evaluates on OTT-QA (26,503 text chunks, 5,391 table chunks) and STaRK
 
 ---
 
-## 10. Why Tools4AI 
+## 10. Why Tools4AI?
 
-Tools4AI is the systems layer that turns the SAGE research paper into a functional AI Agent tool.
+Tools4AI is the **systems layer** that turns the SAGE research paper into a functional **AI Agent tool**. While SAGE defines the *logic* of how to retrieve data, Tools4AI defines how an *AI interacts* with that logic. Specifically, it provides:
 
-While SAGE defines the logic of how to retrieve data, Tools4AI defines how an AI interacts with that logic. Specifically, it is needed for:
+1. **Semantic Tool Discovery (`@Agent` & `@Action`)**
+   SAGE is a Java algorithm. Without Tools4AI, an LLM has no way of knowing it exists or how to call it. By annotating `GraphRetrievalAction.java` with `@Action`, we create a "manifest" that the LLM can read. When an AI receives a complex question, it semantically matches the user's intent to the `searchKnowledgeGraph()` method.
 
-1. Semantic Tool Discovery (@Agent & @Action)
-SAGE is a Java algorithm. Without Tools4AI, an LLM (like GPT-4 or Llama-3) has no way of knowing it exists or how to call it.
+2. **Bridging the "Paper" to the "System"**
+   The SAGE paper focuses on benchmarks; Tools4AI focuses on execution. In the paper, "Graph Expansion" is a mathematical step. In this implementation, `expandNode` is a **tool call**. This allows an LLM to perform "Reasoning-level Expansion"—deciding to call `expandNode` on a specific entity to find more context, just as a human researcher would.
 
-The Role: By annotating 
-GraphRetrievalAction.java
- with @Action, you're creating a "manifest" that the LLM can read.
-The result: When an AI receives a complex question, it can semantically match the user's intent to the 
-searchKnowledgeGraph()
- method because Tools4AI exposed it as a callable capability.
-2. Bridging the "Paper" to the "System"
-The SAGE paper is academic—it focuses on benchmarks (Recall@k). Tools4AI is operational—it focuses on execution.
+3. **Infrastructure for LLM-Dependent Components**
+   The SAGE algorithm relies on an LLM for metadata extraction and schema-aware traversal. Tools4AI provides the `AIProcessor` and configuration (via `tools4ai.properties`) to handle these LLM calls natively, managing connections to providers like NVIDIA NIM without requiring custom HTTP clients.
 
-In the paper, "Graph Expansion" is a mathematical step.
-In your implementation via Tools4AI, 
-expandNode
- is a tool call. This allows an LLM to perform "Reasoning-level Expansion"—if the LLM gets an answer but thinks it's incomplete, it can decide to call 
-expandNode
- on a specific entity to find more context, exactly as a human researcher would.
-3. Infrastructure for LLM-Dependent Components
-The SAGE algorithm actually relies on an LLM for two key things:
-
-Metadata Extraction: Segmenting text and extracting "Topics" and "Entities" (Section 2.1).
-SPARK Agent: Generating Cypher queries for Neo4j (Section 4).
-Tools4AI provides the AIProcessor and configuration (like your 
-tools4ai.properties
-) to handle these LLM calls natively. You don't have to write custom HTTP clients or JSON parsers for NVIDIA NIM; Tools4AI manages those connections for you.
-
-4. Ecosystem Consistency
-You’ve used Tools4AI across multiple projects (Agent Misalignment, Fraud Detection). By using it here, you are building a unified Agentic architecture.
-
-Misalignment project: Uses Tools4AI for Safety (blocking actions).
-SAGE project: Uses Tools4AI for Knowledge (providing context). They now share the same "language," allowing you to eventually combine them into a single agent that retrieves knowledge via SAGE while being monitored for safety via Misalignment callback
+4. **Ecosystem Consistency**
+   By using Tools4AI, this project joins a unified Agentic architecture alongside the **Agent Misalignment** and **Fraud Detection** projects. They share a common "language," enabling future integration where an agent retrieves knowledge via SAGE while being monitored for safety via Misalignment callbacks.
 
 ---
 
+
+
 ## References
 
-1. Titiya, P., Khoja, R., Wolfson, T., Gupta, V., & Roth, D. (2026). *SAGE: Structure Aware Graph Expansion for Retrieval of Heterogeneous Data.* arXiv:2602.16964.
+1. Titiya, P., Khoja, R., Wolfson, T., Gupta, V., & Roth, D. (2026). *SAGE: Structure Aware Graph Expansion for Retrieval of Heterogeneous Data.* arXiv:2602.16964. https://www.arxiv.org/abs/2602.16964 
 2. Tools4AI Framework: [github.com/vishalmysore/Tools4AI](https://github.com/vishalmysore/Tools4AI)
 3. JSON-LD 1.1 Specification: [w3.org/TR/json-ld11](https://www.w3.org/TR/json-ld11/)
 4. Schema.org Vocabulary: [schema.org](https://schema.org/)
