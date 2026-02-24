@@ -17,6 +17,41 @@ This project is a **structural and algorithmic operationalization** of the **SAG
 Standard RAG (Retrieval-Augmented Generation) systems use **flat retrieval** — independently indexed text chunks are retrieved using sparse or dense similarity search. While effective for simple text-centric queries, this design has three critical failure modes:
 
 1. **Missing Multi-Hop Evidence**: Flat retrieval treats each chunk independently, ignoring structural dependencies. A question like *"What television show starring Trevor Eyster was based on a book?"* requires linking an actor's biography → a TV show listing → a book adaptation record. These are three separate chunks that standard cosine similarity searches will not connect.
+
+> **Example: The Bridge Effect**
+> 
+> This is another example where the graph expansion concept becomes interesting. Let's walk through a conceptual example:
+> 
+> **The Data Chunks:**
+> * **A**: "Inception is a 2010 film directed by Christopher Nolan."
+> * **B**: "Inception won four Academy Awards."
+> * **C**: "Leonardo DiCaprio starred in Inception."
+> * **D**: "Titanic starring Leonardo DiCaprio was based on a real story."
+> * **E**: "Inception is a fictional sci-fi story."
+>
+> 🧱 **Step 1 — Embedding Each Chunk (Offline)**
+> Each chunk is converted into a semantic vector. We compute cosine similarity between all pairs.
+>
+> 🔎 **Step 2 — Semantic Similarities**
+> * **A ↔ B/C/E**: High similarity (all share the "Inception" context).
+> * **C ↔ D**: Medium similarity (shared entity: **Leonardo DiCaprio**).
+> * **A ↔ D**: Low similarity (different movies, different genres).
+>
+> 🌐 **Step 3 — Apply Percentile Pruning**
+> Suppose we keep only the top 5% of connections. The graph forms a cluster around *Inception* (A, B, C, E), but **D (Titanic)** is only connected via **C**.
+>
+> 🎯 **Query-Time Behavior**
+> User asks: *"Which actor starred in the 2010 Nolan film?"*
+> 1. **Seed Retrieval**: Finds **A** (matches "2010 Nolan film").
+> 2. **Graph Expansion**: From **A**, we traverse to **C** (the actor info).
+> 3. **Result**: The system recovers "Leonardo DiCaprio" even if the actor wasn't mentioned in the primary "film" chunk.
+>
+> 🧠 **The Insight**: The graph encodes semantic neighborhoods. Even though *Titanic* is a different movie, it shares an entity with *Inception*. This creates a bridge that allows multi-hop evidence aggregation: **Movie → Actor → Other Movie**.
+>
+> 🔬 **Why this beats Flat Retrieval**: Flat retrieval only returns chunks similar to the query. SAGE returns chunks related to the chunks that match the query.
+>
+> ⚠️ **Lexical vs. Semantic**: Using **Jaccard** (lexical) would only see the "Leonardo" token overlap. **Embedding** similarity is more robust to variations in phrasing and captures the deeper "Actor" relationship more effectively.
+
 2. **Cross-Modal Blindness**: Documents and tables contain complementary evidence. A table listing "Film | Director | Year" and a document describing a director's filmography are structurally related, but flat retrieval scores them independently against the query.
 3. **Intermediate Evidence Loss**: Bridging chunks that are weakly related to the query in embedding space but structurally connected to relevant content are frequently missed.
 
@@ -548,6 +583,12 @@ Tools4AI is the **systems layer** that turns the SAGE research paper into a func
 ---
 
 
+
+
+
+
+
+---
 
 ## References
 
